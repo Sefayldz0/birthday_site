@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hafıza Kartı Oyunu</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .game-board {
+    width: 640px;
+    display: grid;
+    grid-template-columns: repeat(4, 150px);
+    grid-gap: 15px;
+  }
+  .card {
+    width: 150px;
+    height: 150px;
+    background: #444;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    perspective: 1000px;
+  }
+  .card-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    backface-visibility: hidden;
+  }
+  .card-front {
+    background: #666;
+  }
+  .card-back {
+    transform: rotateY(180deg);
+    background-size: cover;
+    background-position: center;
+  }
+  .message {
+    margin-top: 20px;
+    font-size: 24px;
+    text-align: center;
+    color: #0f0;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="game-board" id="gameBoard"></div>
+  <div class="message" id="message"></div>
+</div>
+
+<script>
+  // Hafıza kartı oyunu için
+  const images = [
+    'imagem/img1.jpg', 'imagem/img2.jpg', 'imagem/img3.jpg', 'imagem/img4.jpg',
+    'imagem/img5.jpg', 'imagem/img6.jpg', 'imagem/img7.jpg', 'imagem/img8.jpg'
+  ];
+  // 8 farklı fotoğraf => toplam 16 kart (her kart 2 kere)
+
+  let cards = [];
+  let firstCard = null;
+  let secondCard = null;
+  let lockBoard = false;
+  let matches = 0;
+
+  const gameBoard = document.getElementById('gameBoard');
+  const message = document.getElementById('message');
+
+  function shuffle(array) {
+    for(let i = array.length -1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i +1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function createCards() {
+    cards = [];
+    images.forEach(img => {
+      cards.push(img);
+      cards.push(img);
+    });
+    shuffle(cards);
+
+    cards.forEach((imgSrc, index) => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.image = imgSrc;
+
+      const cardInner = document.createElement('div');
+      cardInner.classList.add('card-inner');
+
+      const cardFront = document.createElement('div');
+      cardFront.classList.add('card-front');
+
+      const cardBack = document.createElement('div');
+      cardBack.classList.add('card-back');
+      cardBack.style.backgroundImage = `url('${imgSrc}')`;
+
+      cardInner.appendChild(cardFront);
+      cardInner.appendChild(cardBack);
+      card.appendChild(cardInner);
+      gameBoard.appendChild(card);
+
+      card.addEventListener('click', flipCard);
+    });
+  }
+
+  function flipCard() {
+    if(lockBoard) return;
+    if(this === firstCard) return;
+
+    this.classList.add('flipped');
+
+    if(!firstCard) {
+      firstCard = this;
+      return;
+    }
+
+    secondCard = this;
+    lockBoard = true;
+
+    checkForMatch();
+  }
+
+  function checkForMatch() {
+    if(firstCard.dataset.image === secondCard.dataset.image) {
+      matches += 1;
+      resetBoard();
+      if(matches === images.length) {
+        message.textContent = "Tebrikler! Oyunu tamamladınız.";
+      }
+    } else {
+      setTimeout(() => {
+        firstCard.classList.remove('flipped');
+        secondCard.classList.remove('flipped');
+        resetBoard();
+      }, 1000);
+    }
+  }
+
+  function resetBoard() {
+    [firstCard, secondCard] = [null, null];
+    lockBoard = false;
+  }
+
+  createCards();
+</script>
+
+</body>
+</html>

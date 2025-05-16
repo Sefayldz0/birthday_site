@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oyun Zamanı</title>
+  <style>
+    body {
+      margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-image: url('img/kalp.webp'); /* 💖 Kalpli arka plan */
+    background-repeat: repeat;
+    background-size: 450px 450px;
+    color: white;
+    overflow: hidden;
+    }
+
+    .exit {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      font-size: 30px;
+      color: white;
+      text-decoration: none;
+      z-index: 10;
+    }
+
+    .card-container {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      position: absolute;
+      width: 300px;
+      height: 450px;
+      background-color: #fff;
+      background-size: cover;
+      background-position: center;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      cursor: grab;
+    }
+
+    .icon-like,
+    .icon-nope {
+      position: fixed;
+      top: 30px;
+      font-size: 48px;
+      font-weight: bold;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.2s ease;
+    }
+
+    .icon-like {
+        font-size: 100px;
+      right: 50px;
+      color: #00ff99;
+    }
+
+    .icon-nope {
+        font-size: 100px;
+      left: 50px;
+      color: #ff5050;
+    }
+
+    .end-message {
+      font-size: 200px;
+      font: bold;
+      color: rgb(255, 0, 0);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="exit">✖</a>
+
+  <!-- Kalp ve çöp kutusu ikonları her zaman görünür -->
+  <div class="icon-like" id="icon-like">❤️</div>
+  <div class="icon-nope" id="icon-nope">🗑️</div>
+
+  <div class="card-container" id="card-container"></div>
+  <div class="end-message" id="end-message" style="display: none;">
+    BİTTİ
+  </div>
+
+  <script>
+    const imageCount = 15;
+    const container = document.getElementById('card-container');
+    const endMessage = document.getElementById('end-message');
+    const likeIcon = document.getElementById('icon-like');
+    const nopeIcon = document.getElementById('icon-nope');
+
+    for (let i = imageCount; i >= 1; i--) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.backgroundImage = `url('images/tinder${i}.jpg')`;
+      container.appendChild(card);
+
+      let offsetX = 0, offsetY = 0;
+
+      card.addEventListener('mousedown', startDrag);
+      card.addEventListener('touchstart', startDrag);
+
+      function startDrag(e) {
+        e = e.touches ? e.touches[0] : e;
+        const startX = e.clientX;
+        const startY = e.clientY;
+
+        function drag(e) {
+          e = e.touches ? e.touches[0] : e;
+          offsetX = e.clientX - startX;
+          offsetY = e.clientY - startY;
+
+          card.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(${offsetX * 0.1}deg)`;
+
+          const maxOffset = 150;
+          const likeOpacity = Math.min(Math.max(offsetX / maxOffset, 0), 1);
+          const nopeOpacity = Math.min(Math.max(-offsetX / maxOffset, 0), 1);
+
+          // Her zaman görünür, sadece yoğunluk değişiyor
+          likeIcon.style.opacity = 0.5 + (likeOpacity * 0.5); // 0.5 - 1 arası
+          nopeIcon.style.opacity = 0.5 + (nopeOpacity * 0.5); // 0.5 - 1 arası
+        }
+
+        function endDrag() {
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('mouseup', endDrag);
+          document.removeEventListener('touchmove', drag);
+          document.removeEventListener('touchend', endDrag);
+
+          if (Math.abs(offsetX) > 100) {
+            card.style.opacity = '0';
+            setTimeout(() => {
+              container.removeChild(card);
+              if (container.children.length === 0) {
+                endMessage.style.display = 'block';
+              }
+            }, 300);
+          } else {
+            card.style.transform = '';
+            likeIcon.style.opacity = '0.5';
+            nopeIcon.style.opacity = '0.5';
+          }
+        }
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', drag);
+        document.addEventListener('touchend', endDrag);
+      }
+    }
+  </script>
+</body>
+</html>
